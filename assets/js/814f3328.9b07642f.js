@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkindyclub=self.webpackChunkindyclub||[]).push([["1833"],{5513(e){e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"New Indy Club Website","permalink":"/indyclub/blog/2026-06-21","unlisted":false,"date":"2026-06-21T00:00:00.000Z"}]}')}}]);

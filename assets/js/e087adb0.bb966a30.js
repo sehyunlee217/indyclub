@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkindyclub=self.webpackChunkindyclub||[]).push([["875"],{8475(e){e.exports=JSON.parse('{"metadata":{"permalink":"/indyclub/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
