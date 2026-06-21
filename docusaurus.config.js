@@ -47,6 +47,7 @@ const config = {
       ({
         docs: {
           sidebarPath: "./sidebars.js",
+          editUrl: "https://github.com/sehyunlee217/indyclub/edit/main/",
         },
         blog: {
           showReadingTime: true,
