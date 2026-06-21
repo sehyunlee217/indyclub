@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkindyclub=self.webpackChunkindyclub||[]).push([["6557"],{5253(e){e.exports=JSON.parse('{"authors":[{"name":"Joe Lee","title":"Academic Director","socials":{"linkedin":"https://www.linkedin.com/in/joe-shyun-lee/"},"key":"Joe","page":null,"count":1}]}')}}]);

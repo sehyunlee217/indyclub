@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkindyclub=self.webpackChunkindyclub||[]).push([["220"],{1912(l){l.exports=JSON.parse('{"blogBasePath":"/indyclub/blog","blogTitle":"Blog","authorsListPath":"/indyclub/blog/authors"}')}}]);
