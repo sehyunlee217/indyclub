@@ -1,0 +1,8 @@
+{
+  "label": "Practical Workshop Series",
+  "position": 2,
+  "link": {
+    "type": "doc",
+    "id": "workshop/index"
+  }
+}
