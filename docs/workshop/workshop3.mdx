@@ -2,4 +2,101 @@
 sidebar_position: 3
 ---
 
-# AI Tools for Productivity
+# Build Reproducible Environments with 🐍 & 🐳
+
+## 3. Create consistent Python environments with `uv`
+
+`uv` vs `pip` vs `conda` vs `mamba`?
+
+A Python **virtual environment** gives one project its own interpreter and packages. This prevents one project's dependencies from silently breaking another project.
+
+We use [`uv`](https://docs.astral.sh/uv/) because it provides a fast, simple workflow for Python versions, environments, dependencies, and lockfiles.
+
+Check whether it is available:
+
+```bash
+uv --version
+```
+
+If the command is not found, install it with the official installer and then open a new terminal:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Create a deliberately small Python project inside `practice/`:
+
+```bash
+uv init --no-package practice/hello-python
+cd practice/hello-python
+uv add --dev ruff pytest
+uv run python main.py
+```
+
+You should now see:
+
+- `pyproject.toml`: project metadata and direct dependencies;
+- `uv.lock`: exact resolved dependency versions (commit this file);
+- `.venv/`: the generated environment (do not commit this directory); and
+- `.python-version`: the project's preferred Python version.
+
+uv lock
+
+Use `uv run ...` to run a command inside the correct environment. You do not need to activate the environment manually.
+
+info When would I use Conda or Mamba?
+
+For most small Python projects, start with `uv`. Conda-compatible tools such as **Conda** or **Mamba** can be a better fit when a project needs CUDA toolkits, non-Python binary libraries, or packages distributed through Conda channels. Follow the environment chosen by the project or research group rather than mixing tools casually.
+
+## 4. Lint and format code
+
+These tools answer different questions:
+
+| Tool           | Question                                |
+| -------------- | --------------------------------------- |
+| Ruff linter    | Is the code suspicious or inconsistent? |
+| Ruff formatter | Is the code laid out consistently?      |
+
+Replace `practice/hello-python/main.py` with:
+
+```python title="main.py"
+def average(values):
+    return sum(values) / len(values)
+
+
+if __name__ == "__main__":
+    print(average([10, 20, 30]))
+```
+
+Create `practice/hello-python/test_main.py`:
+
+```python title="test_main.py"
+from main import average
+
+
+def test_average():
+    assert average([10, 20, 30]) == 20
+```
+
+From `practice/hello-python`, run the quality loop:
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest -q
+```
+
+To let Ruff apply safe fixes and formatting:
+
+```bash
+uv run ruff check --fix .
+uv run ruff format .
+```
+
+Before you finish, confirm that:
+
+- `uv run ruff check .` passes inside `practice/hello-python`;
+- `uv run ruff format --check .` passes;
+- `uv run pytest -q` passes;
+- `git status` says the working tree is clean; and
+- your latest commits appear on GitHub.

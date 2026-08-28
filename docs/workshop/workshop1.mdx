@@ -1,5 +1,484 @@
 ---
+title: Work Locally Without Fear
+description: Learn the Linux terminal, Git, and GitHub
 sidebar_position: 1
 ---
 
-# Terminal, Git & Github
+# Work Locally Without Fear
+
+## What you will learn
+
+By the end, you will be able to:
+
+- navigate a Linux filesystem from the terminal.
+- inspect, stage, commit, and review changes with Git.
+- create and switch branches in Git.
+- create your first pull request on Github.
+- create a reproducible Python environment with `uv`.
+- lint, format, test, and debug a small Python program.
+
+## Before you begin:
+
+The best way to get started is by downloading locally.
+The instructions for that is listed below here for each different OS.
+For convenience and for saving time, I'm going to work with github codespaces, which
+work on the browser or VS code, but I strongly encourage you to follow the local installation
+steps when you have time.
+
+### MacOS
+
+- Install `uv`
+- Install `python3`
+- Install `git`
+
+### Windows
+
+1. Follow [Set up a WSL development environment](https://learn.microsoft.com/en-us/windows/wsl/setup/environment) from Microsoft.
+2. Follow [Get started using Git on WSL for Linux](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)
+3. Install `python3`
+4. Install `uv`
+
+I know it's a bit trickier to setup everything using WSL on Windows compared to MacOS but
+I strongly encourage WSL over powershellA as its commands are slightly different from
+WSL/Bash.
+
+### Working in the browser (Github Codespaces)
+
+We use [GitHub Codespaces](https://docs.github.com/en/codespaces) as the default environment.
+You only need a browser and a GitHub account;
+the commands are the same whether your physical device runs Windows, macOS, or Linux.
+
+1. Open the workshop repository on GitHub.
+2. Select **Code**, then **Codespaces**.
+3. Select **Create codespace on main**.
+4. Wait for VS Code to open in your browser, then open **Terminal → New Terminal**.
+
+## 1. Find your way around the terminal
+
+A **terminal** is the window where you type.
+A **shell** is the program inside it that reads your commands.
+Codespaces and most Linux-based installations commonly use Bash,
+while macOS uses Zsh by default.
+
+You can check your shell with this script.
+
+```
+echo "$SHELL"
+```
+
+The line waiting for your command is the **prompt**. It may look like this:
+
+```text
+@username ➜ /workspaces/indyclub_workshops (main) $
+```
+
+It often shows your username, current folder, and Git branch. You type after the prompt; do not copy the prompt itself.
+
+A final `$` usually means you are an ordinary user.
+A final `#` often means the shell has administrator (`root`) privileges, where mistakes can affect the whole server.
+
+### Commands and help
+
+Commands usually follow this pattern:
+
+```text
+<command> <options>  <arguments>
+ls       -la      docs
+```
+
+Here, `ls` is the command, `-la` changes its behaviour, and `docs` is the folder it acts on. Try a few small commands:
+
+```bash
+date                    # show the current date and time
+echo hello              # print some text
+echo "hello Indy Club"  # quotes keep words together as one argument
+ls --help               # show brief help for a command
+man ls                  # open the full manual; press q to leave
+```
+
+Most commands split arguments at spaces, so make sure to quote (`""`) names containing spaces:
+
+```bash
+mkdir "My Notes"
+ls "My Notes"
+```
+
+Press **Tab** to complete a command or path. Press **Up Arrow** to recall an earlier command.
+
+If a program keeps running or you're stuck because you entered absolute wrong command, press **Ctrl-C** to stop it. The terminal displays this interruption as `^C`.
+
+### Location and paths
+
+Start by asking where you are and what is there:
+
+```bash
+pwd                 # print the current working directory
+echo "$PWD"         # the same location, stored in a shell variable
+ls                  # list visible files
+ls -la              # include hidden files and details
+```
+
+Linux paths use `/` to separate folders:
+
+- `/` is the filesystem root;
+- `~` is your home directory;
+- `.` is the current directory;
+- `..` is the parent directory;
+- `/workspaces/indyclub_workshops` is an **absolute** path; and
+- `indyclub/docs/workshop` is a **relative** path.
+
+Move around and return to the repository root:
+
+```bash
+cd indyclub/docs/workshop # change directory
+cd ../../..               # return to the repository root
+cd ~                   # go to your home directory
+cd /workspaces/indyclub_workshops
+```
+
+`cd` is built into the shell because it must change the shell's own location. Use `type` to learn whether a name is a built-in, alias, function, or external program:
+
+```bash
+type cd
+type python
+```
+
+The shell finds programs by searching the folders listed in the `PATH` environment variable:
+
+```bash
+echo "$PATH"
+which python
+which git
+```
+
+You normally type `python` or `git`; you do not need to type the full path reported by `which`.
+
+When you enter a command such as `python`, the shell searches each `:`-separated folder in `PATH` until it finds an executable program with that name. Giving a path bypasses that search:
+
+```bash
+which python
+/home/codespace/.python/current/bin/python --version
+```
+
+### Create, inspect, copy, and move files
+
+Run these commands from the repository root:
+
+```bash
+mkdir -p practice/notes
+mkdir -p practice/src practice/docs # one command can take several arguments
+touch practice/notes/commands.txt
+echo "pwd shows where I am" > practice/notes/commands.txt
+cat practice/notes/commands.txt
+cp practice/notes/commands.txt practice/notes/commands-copy.txt
+mv practice/notes/commands-copy.txt practice/notes/backup.txt
+find practice -type f
+grep -n "pwd" practice/notes/commands.txt
+```
+
+Some useful reading commands are:
+
+| Command                 | Purpose                     |
+| ----------------------- | --------------------------- |
+| `cat file`              | Print the whole file        |
+| `head file`             | Print the first ten lines   |
+| `tail file`             | Print the last ten lines    |
+| `grep "text" file`      | Print lines containing text |
+| `grep -r "text" folder` | Search files recursively    |
+
+For example:
+
+```bash
+grep -n "pwd" practice/notes/commands.txt
+grep -r -n "workshop" indyclub/docs
+```
+
+`grep` searches.
+
+### Standard input, output, pipes, and redirects
+
+Command-line programs normally use three standard streams:
+
+| Stream                     | Number | Normally connected to |
+| -------------------------- | -----: | --------------------- |
+| Standard input (`stdin`)   |    `0` | Your keyboard         |
+| Standard output (`stdout`) |    `1` | The terminal          |
+| Standard error (`stderr`)  |    `2` | The terminal          |
+
+If a program receives no filename, it can often read text from standard input. A pipe changes these connections for you.
+
+A pipe, `|`, sends the output of one command into the next command. This lets you combine small programs:
+
+```bash
+printf "pear\napple\npear\n" | sort
+printf "pear\napple\npear\n" | sort | uniq
+find indyclub/docs -type f | grep "workshop"
+```
+
+Read a pipeline from left to right: produce some text, transform it, then display the result.
+
+Redirects send input or output somewhere other than the terminal:
+
+```bash
+echo "first line" > practice/notes/example.txt    # create or overwrite
+echo "second line" >> practice/notes/example.txt # append
+sort < practice/notes/example.txt                 # read input from a file
+grep "line" practice/notes/example.txt > practice/notes/matches.txt
+```
+
+In other words:
+
+- `>` redirects standard output and overwrites the file;
+- `>>` redirects standard output and appends to the file; and
+- `<` redirects a file into standard input.
+
+Programs have a normal output stream and an error stream. `2>` saves errors, while `2>&1` combines errors with normal output:
+
+```bash
+ls missing-file 2> practice/notes/errors.txt
+ls practice missing-file > practice/notes/all-output.txt 2>&1
+```
+
+Be careful with `>` because it replaces the destination file immediately. Use `>>` when you intend to append.
+
+### Bash variables
+
+Create a variable with no spaces around `=` and read it with `$`:
+
+```bash
+course="Indy Club"
+echo "$course"
+echo '$course'          # single quotes print the text literally
+today=$(date +%F)       # capture a command's output
+echo "Today is $today"
+```
+
+`course="Indy Club"` is an assignment. `course = "Indy Club"` is not: Bash would try to run a command named `course` because spaces separate commands from their arguments. Bash variables are strings; Bash does not give them types like Python does.
+
+Double quotes expand variables; single quotes do not. As a safe default, write `"$variable"` so spaces in its value stay together.
+
+`$(command)` is called **command substitution**. Bash runs the command and replaces the whole `$()` expression with its output:
+
+```bash
+numbers=$(seq 1 10)
+echo "$numbers"
+
+for number in $(seq 1 3); do
+  echo "Number $number"
+done
+```
+
+Older scripts may use backticks for command substitution. Prefer `$()` because it is clearer and can be nested.
+
+A shell variable belongs to the current shell. `export` also passes it to programs started from that shell:
+
+```bash
+export COURSE="Indy Club"
+bash -c 'echo "$COURSE"'
+TZ=Asia/Tokyo date      # set a variable for this command only
+```
+
+Environment-variable names are conventionally uppercase, such as `PATH`, `HOME`, and `COURSE`.
+
+### Bash is a programming language
+
+Bash supports conditionals, loops, and functions:
+
+```bash
+if [[ -f README.md ]]; then
+  echo "README found"
+else
+  echo "README not found"
+fi
+
+for number in 1 2 3; do
+  echo "Run $number"
+done
+
+greet() {
+  echo "Hello, $1"
+}
+
+greet "Indy Club"
+```
+
+`[[ -f README.md ]]` checks whether a file exists. In the function, `$1` means the first argument passed to it.
+
+`grep -q` checks quietly without printing the matching line. `((count++))` performs integer arithmetic.
+
+### Write and run a Bash script
+
+For more than a few lines, save the commands in a `.sh` file. Create `practice/check-data.sh` in VS Code with this content:
+
+```bash title="practice/check-data.sh"
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+data_file="practice/data/clean/summary.csv"
+
+if [[ ! -f "$data_file" ]]; then
+  echo "Missing $data_file" >&2
+  exit 1
+fi
+
+report_file() {
+  local file="$1"
+  echo "Found: $file"
+}
+
+for file in practice/data/raw/*.csv; do
+  report_file "$file"
+done
+
+row_count=$(tail -n +2 "$data_file" | wc -l)
+echo "Summary contains $row_count data row(s)."
+```
+
+Exercise 1 below creates its input files. After creating them, run the script from the repository root:
+
+```bash
+bash practice/check-data.sh
+```
+
+The first line, called a **shebang**, selects Bash. `set -euo pipefail` makes common mistakes stop the script instead of failing silently. The script checks a file, loops over CSV files, uses a function, and combines commands with a pipe.
+
+You can also mark the file as executable and run it by its path:
+
+```bash
+chmod +x practice/check-data.sh
+./practice/check-data.sh
+```
+
+The leading `./` means “run the file from the current directory.” The shell does not usually search the current directory through `PATH`.
+
+### Exercise 1 — Build and inspect a directory tree
+
+Run these commands from the repository root:
+
+```bash
+mkdir -p practice/data/raw practice/data/clean
+touch practice/data/raw/january.csv practice/data/raw/february.csv
+echo "month,value" > practice/data/clean/summary.csv
+echo "january,10" >> practice/data/clean/summary.csv
+find practice -maxdepth 3 -type f
+cat practice/data/clean/summary.csv
+bash practice/check-data.sh
+```
+
+Check yourself:
+
+1. What does `pwd` print?
+2. From the repository root, is `practice/data/raw` absolute or relative?
+3. What does `..` refer to after `cd practice/data`?
+4. What is the difference between `>` and `>>`?
+5. In `find practice -type f | sort`, what does the pipe send to `sort`?
+
+## 2. Save work with Git
+
+Git usually follows a small loop:
+
+```text
+edit → inspect → stage → commit → repeat
+```
+
+First, inspect the repository without changing it:
+
+```bash
+git status
+git branch --show-current
+git log --oneline --decorate -5
+```
+
+Now inspect the practice files you created:
+
+```bash
+git status
+git diff
+```
+
+`git diff` shows changes to tracked files. New, untracked files appear in `git status` but not in the default diff. Stage only the files you intend to include, then inspect the staged snapshot:
+
+```bash
+git add practice/
+git status
+git diff --staged
+git commit -m "Add terminal practice files"
+git log --oneline --decorate -5
+```
+
+There isn't like a super correct way of writing commit messages but there are some
+best practices such as [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+
+A commit is a named snapshot, not a cloud backup. Send your commits to GitHub with:
+
+```bash
+git push
+```
+
+If Git asks you to publish the branch, use the button offered by VS Code or follow the command Git prints.
+
+:::tip Make small commits
+
+A useful commit contains one coherent change and a message that completes the sentence “This commit will…” — for example, `Add input validation` or `Fix total calculation`.
+
+:::
+
+### Branches: a safe place to experiment
+
+A branch is a movable label pointing at a line of commits. Create a branch before trying something you may not want on `main`:
+
+```bash
+git switch -c practice/python-tools
+git branch
+```
+
+After committing on this branch, publish it:
+
+```bash
+git push -u origin practice/python-tools
+```
+
+Later, switch back with `git switch main`. Your committed branch work is still safe.
+
+### Exercise 2 — Make one focused commit
+
+1. Create `practice/notes/git.txt`.
+2. Write one sentence explaining the difference between Git and GitHub.
+3. Use `git status` to identify the change.
+4. Stage only that file.
+5. Read the staged diff.
+6. Commit it with a clear message.
+7. Use `git log --oneline -3` to find the new commit.
+
+<details>
+<summary>One possible solution</summary>
+
+```bash
+echo "Git records history; GitHub hosts and shares repositories." > practice/notes/git.txt
+git status
+git add practice/notes/git.txt
+git diff --staged
+git commit -m "Document Git and GitHub distinction"
+git log --oneline -3
+```
+
+</details>
+
+## Command cheat sheet
+
+| Goal                               | Command                     |
+| ---------------------------------- | --------------------------- |
+| Show current directory             | `pwd`                       |
+| List files, including hidden files | `ls -la`                    |
+| Move between directories           | `cd path` / `cd ..`         |
+| Read a text file                   | `cat file`                  |
+| Find text                          | `grep -n "text" file`       |
+| Inspect Git state                  | `git status`                |
+| Stage a specific file              | `git add path/to/file`      |
+| Inspect staged changes             | `git diff --staged`         |
+| Save a snapshot                    | `git commit -m "Message"`   |
+| Read compact history               | `git log --oneline --graph` |
+| Create and switch branch           | `git switch -c branch-name` |
+
+Submit a Pull Request (PR)!
